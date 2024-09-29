@@ -27,17 +27,16 @@ public class UserService {
             query=ConstantValues.queryHashMap.get(requestDto.fileName);
         }else{
             query = commonMethods.readFile(requestDto.fileName);
-            query=commonMethods.formatQuery(query,requestDto.params);
-
+            if(query==null || query.trim().isEmpty()){
+                responseDto.setFailure("No Criteria Found");
+                return responseDto;
+            }else{
+                ConstantValues.queryHashMap.put(requestDto.fileName,query);
+            }
         }
-        if(query==null || query.trim().isEmpty()){
-            responseDto.setFailure("No Criteria Found");
-            return responseDto;
-        }else{
-            ConstantValues.queryHashMap.put(requestDto.fileName,query);
-        }
-
-        List<Object> list=fnExecuteQuery(query);
+        
+        String updateQuery=commonMethods.formatQuery(query,requestDto.params);
+        List<Object> list=fnExecuteQuery(updateQuery);
         if(list.isEmpty()){
             responseDto.setFailure("No Record Found");
             return responseDto;

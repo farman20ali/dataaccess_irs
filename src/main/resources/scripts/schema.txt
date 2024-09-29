@@ -57,12 +57,13 @@ CREATE TABLE user_permissions (
 --****************************************insert*******************************
 --USERS
 
-insert into  users (username,password_hash,email,mobile_number) values ('farman','test','farman@gmail.com','03089071596');
-insert into  users (username,password_hash,email,mobile_number) values ('alien','test','alien@gmail.com','03089071597');
+insert into  users (username,password_hash,email,mobile_number) values ('farman','test','farman@gmail.com','03001');
+insert into  users (username,password_hash,email,mobile_number) values ('test','test','test@gmail.com','03002');
+insert into  users (username,password_hash,email,mobile_number) values ('ambulance','test','ambulance@gmail.com','03003');
 
 
 -- Roles
-INSERT INTO roles (role_name) VALUES ('admin'), ('user');
+INSERT INTO roles (role_name) VALUES ('admin'), ('citizen'),('ambulance');
 
 -- Permissions
 INSERT INTO permissions (permission_name) VALUES 
@@ -73,21 +74,83 @@ INSERT INTO permissions (permission_name) VALUES
 ('call_ambulance'),
 ('view_history'),
 ('view_report'),
-('manage_users')
+('manage_users'),
+('pick_up'),
+('drop_off'),
+('alert_options'),
+('manage_activities'),
+('current_activities'),
+('ambulance_stats'),
+('search_users'),
+('create_users'),
+('update_users'),
+('update_accident_report'),
+('assign_ambulance'),
+('authorized_login')
 
 
--- Assign permissions to roles
+
+
+select * from role_permissions rp 
+
+--|--------------------admin roles---------------------------------
+
 INSERT INTO role_permissions (role_id, permission_id) VALUES
 ((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'dashboard_view')),
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'profile_edit')),
-((SELECT id FROM roles WHERE role_name = 'user'), (SELECT id FROM permissions WHERE permission_name = 'profile_edit'));
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'authorized_login')), 
 
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'ambulance_stats')),
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'view_profile')),
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'profile_edit')), 
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'view_history')),
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'view_report')),
+
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'manage_activities')),
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'current_activities')),
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'assign_ambulance')),
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'update_accident_report')),
+
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'manage_users')),
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name ='search_users')),
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name ='create_users')),
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name ='update_users'));
+
+
+
+--|--------------------ambulance roles---------------------------------
+
+INSERT INTO role_permissions (role_id, permission_id) VALUES
+((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'dashboard_view')),
+((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'authorized_login')), 
+ 
+((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'view_profile')), 
+((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'view_history')), 
+
+((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'alert_options')),
+((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'drop_off')),
+((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'pick_up')),
+
+((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'update_accident_report'));
+ 
+
+--|--------------------citizen roles---------------------------------
+
+INSERT INTO role_permissions (role_id, permission_id) VALUES
+((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'dashboard_view')), 
+ 
+((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'view_profile')), 
+((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'view_history')), 
+((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'profile_edit')), 
+((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'call_ambulance')),
+((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'report_accident'));
+ 
 
 
 -- Assign roles to a user
 INSERT INTO user_roles (user_id, role_id) VALUES 
 (1, (SELECT id FROM roles WHERE role_name = 'admin')),
-(2, (SELECT id FROM roles WHERE role_name = 'user'));
+(2, (SELECT id FROM roles WHERE role_name = 'citizen'));
+(3, (SELECT id FROM roles WHERE role_name = 'ambulance'));
 
 -- Assign direct permissions to a user
 INSERT INTO user_permissions (user_id, permission_id) VALUES 
