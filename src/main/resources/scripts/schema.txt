@@ -1,0 +1,101 @@
+Create database IRS; 
+--**************************************Delete******************************
+-- Drop tables if they exist
+DROP TABLE IF EXISTS role_permissions CASCADE;
+DROP TABLE IF EXISTS user_permissions CASCADE;
+DROP TABLE IF EXISTS user_roles CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS roles CASCADE;
+DROP TABLE IF EXISTS permissions CASCADE;
+
+
+--****************************************create*******************************
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    mobile_number VARCHAR(255) NOT NULL UNIQUE,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE
+);
+
+CREATE TABLE roles (
+    id SERIAL PRIMARY KEY,
+    role_name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE permissions (
+    id SERIAL PRIMARY KEY,
+    permission_name VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE user_roles (
+    user_id INT,
+    role_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (role_id) REFERENCES roles(id),
+    PRIMARY KEY (user_id, role_id)
+);
+
+CREATE TABLE role_permissions (
+    role_id INT,
+    permission_id INT,
+    FOREIGN KEY (role_id) REFERENCES roles(id),
+    FOREIGN KEY (permission_id) REFERENCES permissions(id),
+    PRIMARY KEY (role_id, permission_id)
+);
+
+CREATE TABLE user_permissions (
+    user_id INT,
+    permission_id INT,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (permission_id) REFERENCES permissions(id),
+    PRIMARY KEY (user_id, permission_id)
+);
+
+
+--****************************************insert*******************************
+--USERS
+
+insert into  users (username,password_hash,email,mobile_number) values ('farman','test','farman@gmail.com','03089071596');
+insert into  users (username,password_hash,email,mobile_number) values ('alien','test','alien@gmail.com','03089071597');
+
+
+-- Roles
+INSERT INTO roles (role_name) VALUES ('admin'), ('user');
+
+-- Permissions
+INSERT INTO permissions (permission_name) VALUES 
+('dashboard_view'), 
+('profile_edit'), 
+('report_accident'),
+('view_profile'),
+('call_ambulance'),
+('view_history'),
+('view_report'),
+('manage_users')
+
+
+-- Assign permissions to roles
+INSERT INTO role_permissions (role_id, permission_id) VALUES
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'dashboard_view')),
+((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'profile_edit')),
+((SELECT id FROM roles WHERE role_name = 'user'), (SELECT id FROM permissions WHERE permission_name = 'profile_edit'));
+
+
+
+-- Assign roles to a user
+INSERT INTO user_roles (user_id, role_id) VALUES 
+(1, (SELECT id FROM roles WHERE role_name = 'admin')),
+(2, (SELECT id FROM roles WHERE role_name = 'user'));
+
+-- Assign direct permissions to a user
+INSERT INTO user_permissions (user_id, permission_id) VALUES 
+(2, (SELECT id FROM permissions WHERE permission_name = 'report_accident'));
+
+
+
+
+
+
+
