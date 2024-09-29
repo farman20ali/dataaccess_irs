@@ -1,0 +1,38 @@
+{
+	"mBoolean": false,
+	"errorMessage": null,
+	"data": [
+		{
+			"role_name": "admin",
+			"permission_name": "dashboard_view"
+		},
+		{
+			"role_name": "admin",
+			"permission_name": "profile_edit"
+		},
+		{
+			"role_name": "admin",
+			"permission_name": "report_accident"
+		},
+		{
+			"role_name": "admin",
+			"permission_name": "view_profile"
+		},
+		{
+			"role_name": "admin",
+			"permission_name": "call_ambulance"
+		},
+		{
+			"role_name": "admin",
+			"permission_name": "view_history"
+		},
+		{
+			"role_name": "admin",
+			"permission_name": "view_report"
+		},
+		{
+			"role_name": "admin",
+			"permission_name": "manage_users"
+		}
+	]
+}
