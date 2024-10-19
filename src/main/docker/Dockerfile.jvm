@@ -7,11 +7,7 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.jvm -t quarkus/dataaccess_irs-jvm .
-#
-# Then run the container using:
-#
-# docker run -i --rm -p 8080:8080 quarkus/dataaccess_irs-jvm
+# docker build -f src/main/docker/Dockerfile.jvm -t dataaccess_irs-jvm:latest .
 #
 # If you want to include the debug port into your docker image
 # you will have to expose the debug port (default 5005 being the default) like this :  EXPOSE 8080 5005.
@@ -77,8 +73,9 @@
 #   accessed directly. (example: "foo.example.com,bar.example.com")
 #
 ###
-FROM registry.access.redhat.com/ubi8/openjdk-11:1.17
-
+#FROM registry.access.redhat.com/ubi8/openjdk-11:1.17
+#new line added
+FROM registry.access.redhat.com/ubi8/openjdk-17:1.20
 ENV LANGUAGE='en_US:en'
 
 
@@ -89,6 +86,9 @@ COPY --chown=185 target/quarkus-app/app/ /deployments/app/
 COPY --chown=185 target/quarkus-app/quarkus/ /deployments/quarkus/
 
 EXPOSE 8080
+EXPOSE 8002
+EXPOSE 3000
+
 USER 185
 ENV AB_JOLOKIA_OFF=""
 ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
