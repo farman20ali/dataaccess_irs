@@ -16,7 +16,7 @@
 #
 # Then run the container using :
 #
-# docker run -i --rm -p 8080:8080 quarkus/dataaccess_irs-jvm
+#  docker run -i --rm -p 8002:8002 dataaccess_irs-jvm:latest
 #
 # This image uses the `run-java.sh` script to run the application.
 # This scripts computes the command line to execute your Java application, and
