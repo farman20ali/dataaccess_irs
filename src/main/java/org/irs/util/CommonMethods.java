@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -52,7 +53,13 @@ public class CommonMethods {
                 for (int i = 1; i <= columnCount; i++) {
                     String columnName = metaData.getColumnName(i);
                     Object columnValue = resultSet.getObject(i);
-                    row.put(columnName, columnValue);
+                    if(columnName.equalsIgnoreCase("image_uri" ) ){
+                        ;
+                        row.put("image", (Collections.singletonMap("uri", columnValue)));
+                    }else{
+                           row.put(columnName, columnValue);
+                    }
+                 
                 }
                 results.add(row);
             }

@@ -1,6 +1,8 @@
-Create database IRS; 
---**************************************Delete******************************
--- Drop tables if they exist
+--************************************** Database and Deletions **************************************
+-- Create database if it doesn't already exist
+--CREATE DATABASE IF NOT EXISTS irs;
+
+-- Drop tables if they exist to reset the structure
 DROP TABLE IF EXISTS role_permissions CASCADE;
 DROP TABLE IF EXISTS user_permissions CASCADE;
 DROP TABLE IF EXISTS user_roles CASCADE;
@@ -8,28 +10,37 @@ DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS roles CASCADE;
 DROP TABLE IF EXISTS permissions CASCADE;
 
+--************************************** Table Creation **************************************
 
---****************************************create*******************************
-
-CREATE TABLE users (
+-- Users table
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     mobile_number VARCHAR(255) NOT NULL UNIQUE,
-    username VARCHAR(255) NOT NULL UNIQUE,
+    full_name VARCHAR(255),
+    username VARCHAR(255) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE
+    email VARCHAR(255) UNIQUE,
+    status VARCHAR(20) DEFAULT 'active', --inactive
+    verification_status VARCHAR(20) DEFAULT 'N' ,   --N not verified and verified Y,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE roles (
+
+
+-- Roles table
+CREATE TABLE IF NOT EXISTS roles (
     id SERIAL PRIMARY KEY,
     role_name VARCHAR(50) NOT NULL UNIQUE
 );
 
-CREATE TABLE permissions (
+-- Permissions table
+CREATE TABLE IF NOT EXISTS permissions (
     id SERIAL PRIMARY KEY,
     permission_name VARCHAR(50) NOT NULL UNIQUE
 );
 
-CREATE TABLE user_roles (
+-- User roles table (many-to-many relationship)
+CREATE TABLE IF NOT EXISTS user_roles (
     user_id INT,
     role_id INT,
     FOREIGN KEY (user_id) REFERENCES users(id),
@@ -37,7 +48,8 @@ CREATE TABLE user_roles (
     PRIMARY KEY (user_id, role_id)
 );
 
-CREATE TABLE role_permissions (
+-- Role permissions table (many-to-many relationship)
+CREATE TABLE IF NOT EXISTS role_permissions (
     role_id INT,
     permission_id INT,
     FOREIGN KEY (role_id) REFERENCES roles(id),
@@ -45,7 +57,8 @@ CREATE TABLE role_permissions (
     PRIMARY KEY (role_id, permission_id)
 );
 
-CREATE TABLE user_permissions (
+-- User permissions table (many-to-many relationship)
+CREATE TABLE IF NOT EXISTS user_permissions (
     user_id INT,
     permission_id INT,
     FOREIGN KEY (user_id) REFERENCES users(id),
@@ -53,112 +66,96 @@ CREATE TABLE user_permissions (
     PRIMARY KEY (user_id, permission_id)
 );
 
+--************************************** Data Insertion **************************************
 
---****************************************insert*******************************
---USERS
+-- Insert Users
+INSERT INTO users (username, password_hash, email, mobile_number) VALUES 
+    ('farman', 'test', 'farman@gmail.com', '03001'),
+    ('test', 'test', 'test@gmail.com', '03002'),
+    ('ambulance', 'test', 'ambulance@gmail.com', '03003')
+ON CONFLICT (username) DO NOTHING;
 
-insert into  users (username,password_hash,email,mobile_number) values ('farman','test','farman@gmail.com','03001');
-insert into  users (username,password_hash,email,mobile_number) values ('test','test','test@gmail.com','03002');
-insert into  users (username,password_hash,email,mobile_number) values ('ambulance','test','ambulance@gmail.com','03003');
+-- Insert Roles
+INSERT INTO roles (role_name) VALUES 
+    ('admin'), 
+    ('citizen'), 
+    ('ambulance')
+ON CONFLICT (role_name) DO NOTHING;
 
-
--- Roles
-INSERT INTO roles (role_name) VALUES ('admin'), ('citizen'),('ambulance');
-
--- Permissions
+-- Insert Permissions
 INSERT INTO permissions (permission_name) VALUES 
-('dashboard_view'), 
-('profile_edit'), 
-('report_accident'),
-('view_profile'),
-('call_ambulance'),
-('view_history'),
-('view_report'),
-('manage_users'),
-('pick_up'),
-('drop_off'),
-('alert_options'),
-('manage_activities'),
-('current_activities'),
-('ambulance_stats'),
-('search_users'),
-('create_users'),
-('update_users'),
-('update_accident_report'),
-('assign_ambulance'),
-('authorized_login')
+    ('dashboard_view'), 
+    ('profile_edit'), 
+    ('report_accident'),
+    ('view_profile'),
+    ('call_ambulance'),
+    ('view_history'),
+    ('view_report'),
+    ('manage_users'),
+    ('pick_up'),
+    ('drop_off'),
+    ('alert_options'),
+    ('manage_activities'),
+    ('current_activities'),
+    ('ambulance_stats'),
+    ('search_users'),
+    ('create_users'),
+    ('update_users'),
+    ('update_accident_report'),
+    ('assign_ambulance'),
+    ('authorized_login')
+ON CONFLICT (permission_name) DO NOTHING;
 
+-- Insert Role Permissions for "admin" role
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT (SELECT id FROM roles WHERE role_name = 'admin'), id FROM permissions 
+WHERE permission_name IN (
+    'dashboard_view', 'authorized_login', 'ambulance_stats', 
+    'view_profile', 'profile_edit', 'view_history', 'view_report', 
+    'manage_activities', 'current_activities', 'assign_ambulance', 
+    'update_accident_report', 'manage_users', 'search_users', 
+    'create_users', 'update_users'
+)
+ON CONFLICT DO NOTHING;
 
+-- Insert Role Permissions for "ambulance" role
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT (SELECT id FROM roles WHERE role_name = 'ambulance'), id FROM permissions 
+WHERE permission_name IN (
+    'dashboard_view', 'authorized_login', 'view_profile', 
+    'view_history', 'alert_options', 'drop_off', 
+    'pick_up', 'update_accident_report'
+)
+ON CONFLICT DO NOTHING;
 
+-- Insert Role Permissions for "citizen" role
+INSERT INTO role_permissions (role_id, permission_id)
+SELECT (SELECT id FROM roles WHERE role_name = 'citizen'), id FROM permissions 
+WHERE permission_name IN (
+    'dashboard_view', 'view_profile', 'view_history', 
+    'profile_edit', 'call_ambulance', 'report_accident'
+)
+ON CONFLICT DO NOTHING;
 
-select * from role_permissions rp 
-
---|--------------------admin roles---------------------------------
-
-INSERT INTO role_permissions (role_id, permission_id) VALUES
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'dashboard_view')),
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'authorized_login')), 
-
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'ambulance_stats')),
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'view_profile')),
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'profile_edit')), 
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'view_history')),
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'view_report')),
-
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'manage_activities')),
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'current_activities')),
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'assign_ambulance')),
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'update_accident_report')),
-
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name = 'manage_users')),
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name ='search_users')),
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name ='create_users')),
-((SELECT id FROM roles WHERE role_name = 'admin'), (SELECT id FROM permissions WHERE permission_name ='update_users'));
-
-
-
---|--------------------ambulance roles---------------------------------
-
-INSERT INTO role_permissions (role_id, permission_id) VALUES
-((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'dashboard_view')),
-((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'authorized_login')), 
- 
-((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'view_profile')), 
-((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'view_history')), 
-
-((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'alert_options')),
-((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'drop_off')),
-((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'pick_up')),
-
-((SELECT id FROM roles WHERE role_name = 'ambulance'), (SELECT id FROM permissions WHERE permission_name = 'update_accident_report'));
- 
-
---|--------------------citizen roles---------------------------------
-
-INSERT INTO role_permissions (role_id, permission_id) VALUES
-((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'dashboard_view')), 
- 
-((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'view_profile')), 
-((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'view_history')), 
-((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'profile_edit')), 
-((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'call_ambulance')),
-((SELECT id FROM roles WHERE role_name = 'citizen'), (SELECT id FROM permissions WHERE permission_name = 'report_accident'));
- 
-
-
--- Assign roles to a user
+-- Assign roles to users
 INSERT INTO user_roles (user_id, role_id) VALUES 
-(1, (SELECT id FROM roles WHERE role_name = 'admin')),
-(2, (SELECT id FROM roles WHERE role_name = 'citizen'));
-(3, (SELECT id FROM roles WHERE role_name = 'ambulance'));
+    ((SELECT id FROM users WHERE username = 'farman'), (SELECT id FROM roles WHERE role_name = 'admin')),
+    ((SELECT id FROM users WHERE username = 'test'), (SELECT id FROM roles WHERE role_name = 'citizen')),
+    ((SELECT id FROM users WHERE username = 'ambulance'), (SELECT id FROM roles WHERE role_name = 'ambulance'))
+ON CONFLICT DO NOTHING;
 
--- Assign direct permissions to a user
+-- Assign direct permissions to users
 INSERT INTO user_permissions (user_id, permission_id) VALUES 
-(2, (SELECT id FROM permissions WHERE permission_name = 'report_accident'));
+    ((SELECT id FROM users WHERE username = 'test'), (SELECT id FROM permissions WHERE permission_name = 'report_accident'))
+ON CONFLICT DO NOTHING;
+
+-- Verify data insertion
+--SELECT * FROM users;
+--SELECT * FROM roles;
+--SELECT * FROM permissions;
+--SELECT * FROM role_permissions;
+--SELECT * FROM user_roles;
+--SELECT * FROM user_permissions;
 
 
-
-
-
-
-
+--select queries
